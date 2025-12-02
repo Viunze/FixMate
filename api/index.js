@@ -16,8 +16,7 @@ app.use(bodyParser.json());
 
 // --- INTEGRASI ROUTE UTAMA ---
 // Endpoint yang dipanggil Frontend adalah: POST /api/v1/auth/github/login
-app.use('/api/v1/auth', authRouter); // Awalan 'auth' akan menambahkan /api/v1/auth ke route di atas
-// app.use('/api/v1/fix', fixRouter); // Contoh route fix
+app.use('/api/v1/auth', authRouter); // Baris ini harus ada!
 
 // Endpoint utama (health check)
 app.get('/', (req, res) => {
