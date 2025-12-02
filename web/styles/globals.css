@@ -15,15 +15,17 @@
   font-weight: 600;
 }
 
-/* Gaya untuk editor Monaco agar memiliki background panel default */
+/* Kustomisasi untuk Monaco Editor agar serasi dengan theme aplikasi */
 .monaco-editor-background {
   background-color: theme('colors.vscode-panel') !important;
 }
 
-/* Gaya untuk komponen di dalam Monaco (misalnya line number area) */
 .monaco-editor .view-lines,
 .monaco-editor .margin {
   background-color: theme('colors.vscode-panel') !important;
 }
 
-/* ------------------------------------------- */
+/* Mengatur warna dan font untuk body */
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+}
