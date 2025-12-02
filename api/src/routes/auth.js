@@ -4,10 +4,10 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
 
-// 1. Menerima code dari GitHub (setelah user login dan otorisasi)
+// Route untuk menerima POST request dari Frontend dengan 'code'
 router.post('/github/login', authController.githubLogin);
 
-// 2. Endpoint untuk memverifikasi token dan mengembalikan info user
+// Route untuk mendapatkan info user (opsional)
 router.get('/user', authController.getUserInfo);
 
 module.exports = router;
