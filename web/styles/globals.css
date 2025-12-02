@@ -1,0 +1,51 @@
+/* web/styles/globals.css */
+
+/* Tiga direktif Tailwind Wajib */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Base Styles untuk Tampilan IDE */
+body {
+  /* Menggunakan warna background utama VS Code */
+  background-color: theme('colors.vscode-bg'); 
+  font-family: 'Inter', sans-serif; 
+}
+
+/* Reset CSS */
+* {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+}
+
+html {
+    color-scheme: dark; /* Membantu browser merender dark theme */
+}
+
+/* Kustomisasi Scrollbar (Untuk Estetika VS Code) */
+/* Catatan: Tidak didukung oleh semua browser */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: theme('colors.vscode-bg');
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: theme('colors.vscode-border');
+  border-radius: 5px;
+  border: 2px solid theme('colors.vscode-bg');
+}
+
+/* Kelas Kustom untuk Header Panel (Mirip Tab Editor) */
+.panel-header {
+    background-color: theme('colors.vscode-panel');
+    border-bottom: 1px solid theme('colors.vscode-border');
+    color: theme('colors.gray.300');
+    padding: 8px 15px;
+    font-size: 13px;
+    font-weight: 500;
+}
