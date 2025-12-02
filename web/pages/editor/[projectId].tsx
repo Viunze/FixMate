@@ -9,15 +9,133 @@ import MonacoEditor from '../../components/editor/MonacoEditor';
 import api from '../../lib/api';
 import { loginWithGitHub, handleGitHubCallback } from '../../lib/auth'; 
 
-// --- INTERFACES & INITIAL DATA (Tidak Berubah) ---
+// --- INTERFACES ---
 
-// ... (Kode Interface dan Initial Data tetap di sini) ...
+interface FixResult {
+    root_cause: string;
+    error_translation: string;
+    fixed_code?: string;
+    pull_request_url?: string;
+}
+
+interface RepoData {
+    owner: string;
+    repo: string;
+    filePath: string;
+    branch: string;
+}
+
+// --- INITIAL DATA ---
+
+const initialCode = `
+import React, { useState } from 'react';
+
+function MyComponent() {
+    // Error: Trying to use 'count' before initialization
+    console.log(count); 
+
+    const [count, setCount] = useState(0);
+
+    return (
+        <button onClick={() => setCount(count + 1)}>
+            Clicked {count} times
+        </button>
+    );
+}
+`;
+
+const initialErrorLog = `
+Uncaught ReferenceError: count is not defined
+    at MyComponent (MyComponent.js:6)
+    at renderWithHooks (react-dom.development.js:16301)
+`;
 
 // --- COMPONENT START ---
 
 const EditorPage: React.FC = () => { 
     const router = useRouter();
-    // ... (States dan fungsi handleSolve tidak berubah) ...
+    
+    // State Fungsionalitas Utama
+    const [rawCode, setRawCode, ] = useState(initialCode);
+    const [errorLog, setErrorLog] = useState(initialErrorLog);
+    const [result, setResult] = useState<FixResult | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+
+    // State GitHub & Mode
+    // BARIS YANG HILANG/RUSAK SUDAH DITAMBAHKAN KEMBALI DI SINI
+    const [user, setUser] = useState<any>(null); 
+    
+    const [mode, setMode] = useState<'paste' | 'repo'>('paste'); 
+    const [repoData, setRepoData] = useState<RepoData>({ 
+        owner: 'viunze', 
+        repo: 'FixMate-Demo', 
+        filePath: 'src/components/MyComponent.js', 
+        branch: 'main' 
+    });
+
+    // --- EFFECT: Handle GitHub OAuth Callback & Load User ---
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const storedUser = localStorage.getItem('fixmate_user');
+
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
+        }
+
+        if (code && !user) {
+            handleGitHubCallback(code).then(loggedInUser => {
+                if (loggedInUser) {
+                    setUser(loggedInUser);
+                    localStorage.setItem('fixmate_user', JSON.stringify(loggedInUser));
+                    router.replace(router.pathname, undefined, { shallow: true }); 
+                }
+            });
+        }
+    }, [user, router]);
+
+
+    // --- FUNCTION: Handle Solve Request (Dual Mode) ---
+    const handleSolve = async () => {
+        if (mode === 'repo' && (!user || !user.githubAccessToken)) {
+             alert("Anda harus Login dengan GitHub untuk menggunakan mode Repo Apply Fix.");
+             return;
+        }
+
+        setIsLoading(true);
+        setResult(null);
+
+        try {
+            let response;
+            
+            if (mode === 'repo') {
+                const repoPayload = {
+                    ...repoData,
+                    githubAccessToken: user.githubAccessToken,
+                };
+                response = await api.post('/fix/repo', repoPayload); 
+                
+            } else {
+                const pastePayload = {
+                    raw_code: rawCode,
+                    error_log: errorLog,
+                    framework: 'React', 
+                    project_dependencies: { 'react': '18.2.0' } 
+                };
+                response = await api.post('/fix', pastePayload);
+            }
+
+            setResult(response.data);
+
+        } catch (error: any) {
+            console.error('Fix request failed:', error.response?.data || error);
+            alert(`Gagal mendapatkan solusi dari FixMate. Detail: ${error.response?.data?.message || error.message}`);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    
+    // --- JSX START ---
     
     return (
         // BACKGROUND UTAMA: app-dark (Monokai)
@@ -30,10 +148,8 @@ const EditorPage: React.FC = () => {
             <motion.header 
                 initial={{ y: -50 }} 
                 animate={{ y: 0 }}
-                // Border gelap
                 className="flex justify-between items-center mb-6 border-b border-border-dark pb-4" 
             >
-                {/* Warna teks aksen */}
                 <h1 className="text-3xl font-bold text-accent-blue">FixMate 🚀</h1>
                 
                 {/* Login Status & Button */}
@@ -47,7 +163,6 @@ const EditorPage: React.FC = () => {
                         <motion.button
                             whileHover={{ scale: 1.05 }}
                             onClick={loginWithGitHub}
-                            // Tombol Login dengan aksen biru
                             className="px-4 py-2 bg-accent-blue text-app-dark rounded-lg font-bold text-sm hover:bg-opacity-80 shadow-md"
                         >
                             Login with GitHub
@@ -59,7 +174,6 @@ const EditorPage: React.FC = () => {
                         whileTap={{ scale: 0.95 }}
                         onClick={handleSolve}
                         disabled={isLoading}
-                        // Tombol Solve dengan aksen hijau
                         className={`px-8 py-3 rounded-lg font-bold text-lg transition-all shadow-lg 
                             ${isLoading ? 'bg-gray-700 cursor-not-allowed text-gray-400' : 'bg-solve-green text-app-dark hover:opacity-90'}`}
                     >
@@ -91,7 +205,53 @@ const EditorPage: React.FC = () => {
             {mode === 'repo' ? (
                 // --- REPO INPUT MODE ---
                 <div className="bg-panel-dark border border-border-dark p-6 rounded-lg shadow-xl h-[70vh] overflow-y-auto">
-                    {/* ... (Ganti input class jika perlu) ... */}
+                    <h2 className="text-xl text-accent-blue mb-4 font-bold">GitHub Repository Details</h2>
+                    <p className="text-gray-400 mb-6">FixMate akan mengambil kode, menganalisis, dan membuat branch baru serta Pull Request (PR) ke repositori Anda.</p>
+
+                    <div className="space-y-4">
+                        <label className="block text-gray-300 text-sm">Owner/Org Name (e.g., viunze)</label>
+                        <input 
+                            type="text" 
+                            value={repoData.owner} 
+                            onChange={(e) => setRepoData({ ...repoData, owner: e.target.value })}
+                            className="w-full p-2 bg-app-dark border border-border-dark rounded-sm text-white focus:ring-accent-blue focus:border-accent-blue"
+                        />
+                        <label className="block text-gray-300 text-sm">Repository Name (e.g., FixMate-Demo)</label>
+                        <input 
+                            type="text" 
+                            value={repoData.repo} 
+                            onChange={(e) => setRepoData({ ...repoData, repo: e.target.value })}
+                            className="w-full p-2 bg-app-dark border border-border-dark rounded-sm text-white focus:ring-accent-blue focus:border-accent-blue"
+                        />
+                        <label className="block text-gray-300 text-sm">File Path to Fix (e.g., src/components/MyComponent.js)</label>
+                        <input 
+                            type="text" 
+                            value={repoData.filePath} 
+                            onChange={(e) => setRepoData({ ...repoData, filePath: e.target.value })}
+                            className="w-full p-2 bg-app-dark border border-border-dark rounded-sm text-white focus:ring-accent-blue focus:border-accent-blue"
+                        />
+                        <label className="block text-gray-300 text-sm">Target Branch (e.g., main)</label>
+                        <input 
+                            type="text" 
+                            value={repoData.branch} 
+                            onChange={(e) => setRepoData({ ...repoData, branch: e.target.value })}
+                            className="w-full p-2 bg-app-dark border border-border-dark rounded-sm text-white focus:ring-accent-blue focus:border-accent-blue"
+                        />
+                    </div>
+                    
+                    {result && result.pull_request_url && (
+                        <div className="mt-8 p-4 bg-solve-green/20 border border-solve-green rounded-sm">
+                            <p className="font-bold text-solve-green mb-2">✅ Pull Request Created!</p>
+                            <a 
+                                href={result.pull_request_url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-accent-blue hover:underline"
+                            >
+                                View Pull Request
+                            </a>
+                        </div>
+                    )}
                 </div>
 
             ) : (
@@ -107,7 +267,7 @@ const EditorPage: React.FC = () => {
                                 value={rawCode}
                                 onChange={(v) => setRawCode(v || '')}
                                 height="100%"
-                                theme="vs-dark" // KRITIS: Kembali ke Dark Theme
+                                theme="vs-dark" // Dark Theme
                             />
                         </div>
                         
@@ -120,7 +280,7 @@ const EditorPage: React.FC = () => {
                                 onChange={(v) => setErrorLog(v || '')}
                                 height="100%"
                                 language="text"
-                                theme="vs-dark" // KRITIS: Kembali ke Dark Theme
+                                theme="vs-dark" // Dark Theme
                             />
                         </div>
                     </div>
@@ -170,7 +330,7 @@ const EditorPage: React.FC = () => {
                             onChange={() => {}} 
                             readOnly={true}
                             height="100%"
-                            theme="vs-dark" // KRITIS: Kembali ke Dark Theme
+                            theme="vs-dark" // Dark Theme
                         />
                         <motion.button
                             whileHover={{ scale: 1.03 }}
