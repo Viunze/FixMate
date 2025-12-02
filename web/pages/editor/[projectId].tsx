@@ -3,19 +3,19 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { motion } from 'framer-motion';
-import { useRouter } from 'next/router'; // Untuk menangani query params
+import { useRouter } from 'next/router'; 
 
 import MonacoEditor from '../../components/editor/MonacoEditor';
 import api from '../../lib/api';
-import { loginWithGitHub, handleGitHubCallback } from '../../lib/auth'; // Asumsi file ini ada
+import { loginWithGitHub, handleGitHubCallback } from '../../lib/auth'; 
 
 // --- INTERFACES ---
 
 interface FixResult {
     root_cause: string;
     error_translation: string;
-    fixed_code?: string; // Opsional untuk mode repo
-    pull_request_url?: string; // Hanya untuk mode repo
+    fixed_code?: string;
+    pull_request_url?: string;
 }
 
 interface RepoData {
@@ -62,7 +62,7 @@ const EditorPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     // State GitHub & Mode
-    const [user, setUser] = useState<any>(null); // Menyimpan data user & accessToken
+    const [user, setUser] = useState<any>(null);
     const [mode, setMode] = useState<'paste' | 'repo'>('paste'); 
     const [repoData, setRepoData] = useState<RepoData>({ 
         owner: 'viunze', 
@@ -87,8 +87,8 @@ const EditorPage: React.FC = () => {
                 if (loggedInUser) {
                     setUser(loggedInUser);
                     localStorage.setItem('fixmate_user', JSON.stringify(loggedInUser));
-                    // Hapus code dari URL
-                    router.replace(router.pathname, undefined, { shallow: true });
+                    // Hapus code dari URL (router.pathname akan menjadi /editor/[projectId])
+                    router.replace(router.pathname, undefined, { shallow: true }); 
                 }
             });
         }
@@ -109,11 +109,9 @@ const EditorPage: React.FC = () => {
             let response;
             
             if (mode === 'repo') {
-                // Panggil ENDPOINT untuk FIX REPO (Apply Patch)
                 const repoPayload = {
                     ...repoData,
                     githubAccessToken: user.githubAccessToken,
-                    // Biasanya, AI Core akan mengambil kode dan log sendiri dari repo
                 };
                 // Endpoint baru yang perlu dibuat di Backend API Gateway: /fix/repo
                 response = await api.post('/fix/repo', repoPayload); 
@@ -270,6 +268,7 @@ const EditorPage: React.FC = () => {
                                 value={rawCode}
                                 onChange={(v) => setRawCode(v || '')}
                                 height="100%"
+                                theme="vs-dark" // Tema Gelap VS Code
                             />
                         </div>
                         
@@ -282,7 +281,7 @@ const EditorPage: React.FC = () => {
                                 onChange={(v) => setErrorLog(v || '')}
                                 height="100%"
                                 language="text"
-                                theme="vs-dark" 
+                                theme="vs-dark" // Tema Gelap VS Code
                             />
                         </div>
                     </div>
@@ -331,6 +330,7 @@ const EditorPage: React.FC = () => {
                             onChange={() => {}} 
                             readOnly={true}
                             height="100%"
+                            theme="vs-dark" // Tema Gelap VS Code
                         />
                         <motion.button
                             whileHover={{ scale: 1.03 }}
@@ -338,7 +338,7 @@ const EditorPage: React.FC = () => {
                             className="mt-0 p-3 bg-green-600 hover:bg-green-700 text-white font-bold transition-colors"
                             disabled={!result}
                         >
-                            APPLY FIX
+                            APPLY FIX (Simulasi Auto Patch)
                         </motion.button>
                     </motion.div>
                 </div>
