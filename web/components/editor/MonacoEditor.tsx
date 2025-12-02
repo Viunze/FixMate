@@ -3,41 +3,59 @@
 import React from 'react';
 import Editor from '@monaco-editor/react';
 
+// --- INTERFACE DIPERBARUI ---
+// Menambahkan properti 'theme' untuk mengatasi Type Error
 interface MonacoEditorProps {
+    title: string;
     value: string;
     onChange: (value: string | undefined) => void;
-    readOnly?: boolean;
+    height: string;
     language?: string;
-    height?: string;
-    title: string;
+    readOnly?: boolean;
+    // TEMA BARU DITAMBAHKAN AGAR SESUAI DENGAN PENGGUNAAN DI [projectId].tsx
+    theme?: 'vs-dark' | 'light' | 'hc-black'; 
 }
 
 const MonacoEditor: React.FC<MonacoEditorProps> = ({ 
+    title, 
     value, 
     onChange, 
-    readOnly = false, 
-    language = 'javascript',
-    height = '100%',
-    title
+    height, 
+    language = 'javascript', 
+    readOnly = false,
+    theme = 'vs-dark' // Set default theme
 }) => {
+    
+    // Custom Options untuk tampilan VS Code yang bersih
+    const editorOptions = {
+        readOnly: readOnly,
+        minimap: { enabled: false }, // Minimap dimatikan
+        fontSize: 14,
+        scrollBeyondLastLine: false,
+        wordWrap: 'on' as const,
+        automaticLayout: true,
+        // menghilangkan garis vertikal (rulers)
+        rulers: [],
+    };
+    
     return (
-        <div className="flex flex-col h-full border border-gray-700 rounded-lg overflow-hidden shadow-lg bg-gray-800/70">
-            <div className="bg-gray-700 p-2 text-sm text-neon-blue font-mono border-b border-gray-600">
-                {title}
+        <div className="flex flex-col h-full bg-vscode-panel">
+            
+            {/* Header Panel Mirip Tab VS Code */}
+            <div className="panel-header flex justify-between items-center text-gray-300 font-mono">
+                <span>{title}</span>
+                {readOnly && <span className="text-xs text-gray-500">(Read-Only)</span>}
             </div>
-            <div className="flex-grow">
+
+            {/* Kontainer Editor Monaco */}
+            <div style={{ height: height || '100%', flexGrow: 1 }}>
                 <Editor
-                    height={height}
-                    language={language}
+                    height="100%"
+                    defaultLanguage={language}
                     value={value}
-                    theme="vs-dark"
+                    theme={theme} // Meneruskan prop theme yang baru
                     onChange={onChange}
-                    options={{
-                        readOnly: readOnly,
-                        minimap: { enabled: false },
-                        scrollBeyondLastLine: false,
-                        fontSize: 14
-                    }}
+                    options={editorOptions}
                 />
             </div>
         </div>
