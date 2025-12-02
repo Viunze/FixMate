@@ -3,25 +3,22 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-   "./pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/**/*.{js,ts,jsx,tsx,mdx}", // Tambahkan ini jika Anda punya folder 'src'
   ],
   theme: {
     extend: {
       colors: {
-        // --- DEFINISI WARNA VS CODE ---
-        'vscode-bg': '#1E1E1E', 
-        'vscode-panel': '#252526',
-        'vscode-border': '#3C3C3C',
-        'vscode-accent': '#007ACC', // Biru VS Code
-        'neon-blue': '#4C9AFF', // Biru terang untuk fokus/aksi
-        // ------------------------------
+        // --- SKEMA WARNA DARK MODE PROFESIONAL ---
+        'app-dark': '#272822',    // Background utama (Monokai Dark)
+        'panel-dark': '#3C3D37',  // Panel & sidebar
+        'border-dark': '#555555', // Border pemisah
+        'accent-blue': '#66D9EF', // Biru terang untuk aksen/link (Cyan)
+        'solve-green': '#A6E22E', // Hijau terang untuk tombol Solve
+        'error-red': '#F92672',   // Merah terang untuk error
+        // ----------------------------------------
       },
-      boxShadow: {
-        'neon': '0 0 10px rgba(76, 154, 255, 0.5)', // Efek shadow untuk tombol penting
-      }
     },
   },
   plugins: [],
