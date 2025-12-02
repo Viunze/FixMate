@@ -4,28 +4,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* --- FUNGSI CSS KUSTOM UNTUK VS CODE UI --- */
-
-/* Gaya Header Panel (Mirip tab atau title bar di VS Code) */
-.panel-header {
-  padding: 8px 15px;
-  border-bottom: 1px solid theme('colors.vscode-border');
-  background-color: theme('colors.vscode-panel');
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
-/* Kustomisasi untuk Monaco Editor agar serasi dengan theme aplikasi */
-.monaco-editor-background {
-  background-color: theme('colors.vscode-panel') !important;
-}
-
-.monaco-editor .view-lines,
-.monaco-editor .margin {
-  background-color: theme('colors.vscode-panel') !important;
-}
-
-/* Mengatur warna dan font untuk body */
 body {
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  /* Background default akan diambil dari class di _app.tsx */
 }
